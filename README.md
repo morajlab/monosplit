@@ -1,0 +1,2 @@
+# monosplit
+Monorepo splitter
