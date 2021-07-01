@@ -1,11 +1,12 @@
 import os
-import hashlib
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 from ..core.version import get_version
 from ..core.app import init
-from ..core.project import scan_project
+from ..core.project import scan_project, validate_config_schema
 from ..core.config import get_ms_config
+from ..core.lock import create_lock_content
+from tinydb import where
 
 VERSION_BANNER = """
 A Git plugin for monorepo management %s
@@ -47,7 +48,6 @@ class Base(Controller):
     )
     def init(self):
         ms_config = get_ms_config(self.app)
-        config_meta = []
 
         data = {
             'path': '.'
@@ -59,13 +59,16 @@ class Base(Controller):
         init(self.app, data['path'])
 
         configs = scan_project(
-            ms_config['config_file_name'] + ms_config['config_file_suffix'],
+            '{}{}'.format(ms_config['config_file_name'], ms_config['config_file_suffix']),
             data['path'])
 
-        for config in configs:
-            repo_path = os.path.dirname(config)
-            config_meta.append({'id': hashlib.md5(repo_path.encode()).hexdigest(), 'path': repo_path})
+        for config_path in configs:
+            if validate_config_schema(path=config_path)['valid']:
+                lock_content = create_lock_content(config_path)
 
-        self.app.lock.insert_multiple(config_meta)
+                self.app.lock.upsert(lock_content, where('hash') == lock_content['hash'])
+            else:
+                self.app.log.warning(
+                    '"{}" repository is not configured properly !'.format(os.path.dirname(config_path)))
 
-        print('Lock file updated')
+        self.app.log.info('Repository initialized successfully !')

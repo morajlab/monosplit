@@ -8,11 +8,11 @@ def init(app, path):
     meta_directory = os.path.join(path, ms_config['meta_directory'])
 
     try:
-        create_lock_object(app, os.path.join(path, ms_config['config_file_name'] + '-lock' + ms_config[
-            'config_file_suffix']))
+        create_lock_object(app, os.path.join(path, '{}-lock{}'.format(ms_config['config_file_name'], ms_config[
+            'config_file_suffix'])))
         if is_inited(app, path) is not True: os.mkdir(meta_directory)
     except OSError:
-        print('Directory already exist !')
+        pass
 
 
 def is_inited(app, path):
