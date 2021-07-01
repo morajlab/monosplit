@@ -6,3 +6,4 @@ tinydb
 gitdb
 gitpython
 jschon
+pyfiglet
