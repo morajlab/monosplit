@@ -47,7 +47,7 @@ class Monosplit(App):
         # Monosplit specific config
         ms_config = {
             'config_file_name': 'monosplit',
-            'config_file_suffix': '.yml',
+            'config_file_suffix': '.json',
             'meta_directory': '.monosplit',
         }
 

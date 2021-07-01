@@ -1,8 +1,10 @@
 import os
+import hashlib
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 from ..core.version import get_version
 from ..core.app import init
+from ..core.project import scan_project
 from ..core.config import get_ms_config
 
 VERSION_BANNER = """
@@ -44,6 +46,9 @@ class Base(Controller):
         ],
     )
     def init(self):
+        ms_config = get_ms_config(self.app)
+        config_meta = []
+
         data = {
             'path': '.'
         }
@@ -51,4 +56,16 @@ class Base(Controller):
         if self.app.pargs.path is not None:
             data['path'] = self.app.pargs.path
 
-        init(os.path.join(data['path'], get_ms_config(self.app)['meta_directory']))
+        init(self.app, data['path'])
+
+        configs = scan_project(
+            ms_config['config_file_name'] + ms_config['config_file_suffix'],
+            data['path'])
+
+        for config in configs:
+            repo_path = os.path.dirname(config)
+            config_meta.append({'id': hashlib.md5(repo_path.encode()).hexdigest(), 'path': repo_path})
+
+        self.app.lock.insert_multiple(config_meta)
+
+        print('Lock file updated')
