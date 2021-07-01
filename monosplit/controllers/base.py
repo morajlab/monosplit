@@ -1,6 +1,9 @@
+import os
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 from ..core.version import get_version
+from ..core.app import init
+from ..core.config import get_ms_config
 
 VERSION_BANNER = """
 A Git plugin for monorepo management %s
@@ -32,26 +35,20 @@ class Base(Controller):
         self.app.args.print_help()
 
     @ex(
-        help='example sub command1',
-
-        # sub-command level arguments. ex: 'monosplit command1 --foo bar'
+        help="Initialize monorepo",
         arguments=[
-            ### add a sample foo option under subcommand namespace
-            (['-f', '--foo'],
-             {'help': 'notorious foo option',
+            (['-p', '--path'],
+             {'help': 'Root repository path',
               'action': 'store',
-              'dest': 'foo'}),
+              'dest': 'path'}),
         ],
     )
-    def command1(self):
-        """Example sub-command."""
-
+    def init(self):
         data = {
-            'foo': 'bar',
+            'path': '.'
         }
 
-        ### do something with arguments
-        if self.app.pargs.foo is not None:
-            data['foo'] = self.app.pargs.foo
+        if self.app.pargs.path is not None:
+            data['path'] = self.app.pargs.path
 
-        self.app.render(data, 'command1.jinja2')
+        init(os.path.join(data['path'], get_ms_config(self.app)['meta_directory']))

@@ -1,12 +1,10 @@
-
 from cement import App, TestApp, init_defaults
 from cement.core.exc import CaughtSignal
 from .core.exc import MonosplitError
-from .controllers.base import Base
+from .controllers import base, git
 
 # configuration defaults
 CONFIG = init_defaults('monosplit')
-CONFIG['monosplit']['foo'] = 'bar'
 
 
 class Monosplit(App):
@@ -42,11 +40,19 @@ class Monosplit(App):
 
         # register handlers
         handlers = [
-            Base
+            base.Base,
+            git.Git
         ]
 
+        # Monosplit specific config
+        ms_config = {
+            'config_file_name': 'monosplit',
+            'config_file_suffix': '.yml',
+            'meta_directory': '.monosplit',
+        }
 
-class MonosplitTest(TestApp,Monosplit):
+
+class MonosplitTest(TestApp, Monosplit):
     """A sub-class of Monosplit that is better suited for testing."""
 
     class Meta:
